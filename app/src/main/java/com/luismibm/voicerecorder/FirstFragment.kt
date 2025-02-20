@@ -1,6 +1,7 @@
 package com.luismibm.voicerecorder
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -9,7 +10,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
-import androidx.navigation.fragment.findNavController
 import com.luismibm.voicerecorder.databinding.FragmentFirstBinding
 
 class FirstFragment : Fragment() {
@@ -21,11 +21,27 @@ class FirstFragment : Fragment() {
     var permissionsToRecordAccepted = false
     var permissions = arrayOf(Manifest.permission.RECORD_AUDIO)
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
 
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
 
         ActivityCompat.requestPermissions(this.requireActivity(), permissions, REQUEST_RECORD_AUDIO_PERMISSION)
+
+        val logo = binding.logo
+        val record = binding.record
+        val stop = binding.stop
+        val play = binding.play
+
+        record.setOnClickListener {
+            logo.setImageDrawable(resources.getDrawable(R.drawable.recording))
+        }
+        stop.setOnClickListener {
+            logo.setImageDrawable(resources.getDrawable(R.drawable.logo))
+        }
+        play.setOnClickListener {
+            logo.setImageDrawable(resources.getDrawable(R.drawable.playing))
+        }
 
         return binding.root
 
