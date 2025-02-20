@@ -3,7 +3,10 @@ package com.luismibm.voicerecorder
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.media.MediaPlayer
+import android.media.MediaRecorder
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -21,6 +24,10 @@ class FirstFragment : Fragment() {
     var permissionsToRecordAccepted = false
     var permissions = arrayOf(Manifest.permission.RECORD_AUDIO)
 
+    var mediaRecorder: MediaRecorder? = null
+    var mediaPlayer: MediaPlayer? = null
+
+
     @SuppressLint("UseCompatLoadingForDrawables")
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
 
@@ -33,14 +40,62 @@ class FirstFragment : Fragment() {
         val stop = binding.stop
         val play = binding.play
 
+        var route = getContext()?.getExternalFilesDir(null)?.absolutePath
+        var fileName = "$route/audiorecord.3gp"
+
         record.setOnClickListener {
             logo.setImageDrawable(resources.getDrawable(R.drawable.recording))
+            if (mediaRecorder == null) {
+                mediaRecorder = MediaRecorder().apply {
+                    setAudioSource(MediaRecorder.AudioSource.MIC)
+                    setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+                    setOutputFile(fileName)
+                    setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+                    try {
+                        prepare()
+                        start()
+                    } catch (e: Exception) {
+                        Log.e("RECORDING", "can't start recording")
+                    }
+                }
+            }
+
         }
+
         stop.setOnClickListener {
-            logo.setImageDrawable(resources.getDrawable(R.drawable.logo))
+            logo.setImageResource(R.drawable.logo)
+            if (mediaRecorder != null) {
+                mediaRecorder?.apply {
+                    stop()
+                    reset()
+                    release()
+                }
+                mediaRecorder = null
+            } else if (mediaPlayer != null) {
+                mediaPlayer?.apply {
+                    stop()
+                    release()
+                }
+                mediaPlayer = null
+            }
         }
+
         play.setOnClickListener {
-            logo.setImageDrawable(resources.getDrawable(R.drawable.playing))
+            logo.setImageResource(R.drawable.playing)
+            if (mediaRecorder == null && mediaPlayer == null) {
+                mediaPlayer = MediaPlayer().apply {
+                    try {
+                        setDataSource(fileName)
+                        prepare()
+                        start()
+                        setOnCompletionListener {
+                            stop.callOnClick()
+                        }
+                    } catch (e: Exception) {
+                        Log.e("RECORDING", "can't start reproducing")
+                    }
+                }
+            }
         }
 
         return binding.root
